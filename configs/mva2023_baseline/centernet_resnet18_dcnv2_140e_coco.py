@@ -27,49 +27,99 @@ model = dict(
         loss_offset=dict(type='L1Loss', loss_weight=1.0)),
     train_cfg=None,
     test_cfg=dict(topk=100, local_maximum_kernel=3, max_per_img=100))
-"""
-img_scale = (1024, 1024)  # Increase input image size
+
+img_scale = (512, 512)  # Increase input image size
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 # Data augmentation
 data = dict(
-    samples_per_gpu=4,
+    samples_per_gpu=6,
     workers_per_gpu=2,
     train=dict(
         pipeline=[
             dict(type='LoadImageFromFile'),
             dict(type='LoadAnnotations', with_bbox=True),
+            dict(
+                type='PhotoMetricDistortion',
+                brightness_delta=32,
+                contrast_range=(0.5, 1.5),
+                saturation_range=(0.5, 1.5),
+                hue_delta=18),
+            dict(
+                type='RandomCenterCropPad',
+                crop_size=(512, 512),
+                ratios=(0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3),
+                mean=[0, 0, 0],
+                std=[1, 1, 1],
+                to_rgb=True,
+                test_pad_mode=None),
             dict(type='Resize', img_scale=img_scale, keep_ratio=True),
             dict(type='RandomFlip', flip_ratio=0.5),
             dict(type='Normalize', **img_norm_cfg),
-            dict(type='Pad', size_divisor=32),
+            # dict(type='Pad', size_divisor=32),
             dict(type='DefaultFormatBundle'),
             dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
         ]),
     val=dict(pipeline=[
         dict(type='LoadImageFromFile'),
-        dict(type='MultiScaleFlipAug', img_scale=img_scale, flip=False, transforms=[
+        dict(
+        type='MultiScaleFlipAug',
+        scale_factor=1.0,
+        flip=False,
+        transforms=[
             dict(type='Resize', keep_ratio=True),
+            dict(
+                type='RandomCenterCropPad',
+                ratios=None,
+                border=None,
+                mean=[0, 0, 0],
+                std=[1, 1, 1],
+                to_rgb=True,
+                test_mode=True,
+                test_pad_mode=['logical_or', 31],
+                test_pad_add_pix=1),
             dict(type='RandomFlip'),
             dict(type='Normalize', **img_norm_cfg),
-            dict(type='Pad', size_divisor=32),
-            dict(type='ImageToTensor', keys=['img']),
-            dict(type='Collect', keys=['img']),
+            dict(type='DefaultFormatBundle'),
+            dict(
+                type='Collect',
+                meta_keys=('filename', 'ori_shape', 'img_shape', 'pad_shape',
+                           'scale_factor', 'flip', 'flip_direction',
+                           'img_norm_cfg', 'border'),
+                keys=['img'])
         ])
     ]),
     test=dict(pipeline=[
         dict(type='LoadImageFromFile'),
-        dict(type='MultiScaleFlipAug', img_scale=img_scale, flip=False, transforms=[
+        dict(
+        type='MultiScaleFlipAug',
+        scale_factor=1.0,
+        flip=False,
+        transforms=[
             dict(type='Resize', keep_ratio=True),
+            dict(
+                type='RandomCenterCropPad',
+                ratios=None,
+                border=None,
+                mean=[0, 0, 0],
+                std=[1, 1, 1],
+                to_rgb=True,
+                test_mode=True,
+                test_pad_mode=['logical_or', 31],
+                test_pad_add_pix=1),
             dict(type='RandomFlip'),
             dict(type='Normalize', **img_norm_cfg),
-            dict(type='Pad', size_divisor=32),
-            dict(type='ImageToTensor', keys=['img']),
-            dict(type='Collect', keys=['img']),
+            dict(type='DefaultFormatBundle'),
+            dict(
+                type='Collect',
+                meta_keys=('filename', 'ori_shape', 'img_shape', 'pad_shape',
+                           'scale_factor', 'flip', 'flip_direction',
+                           'img_norm_cfg', 'border'),
+                keys=['img'])
         ])
     ])
 )
-"""
+
 optimizer_config = dict(
     _delete_=True, grad_clip=dict(max_norm=35, norm_type=2))
 
