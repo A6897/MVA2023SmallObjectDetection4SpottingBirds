@@ -27,7 +27,7 @@ model = dict(
         loss_offset=dict(type='L1Loss', loss_weight=1.0)),
     train_cfg=None,
     test_cfg=dict(topk=100, local_maximum_kernel=3, max_per_img=100))
-
+"""
 img_scale = (1024, 1024)  # Increase input image size
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
@@ -69,7 +69,7 @@ data = dict(
         ])
     ])
 )
-
+"""
 optimizer_config = dict(
     _delete_=True, grad_clip=dict(max_norm=35, norm_type=2))
 
